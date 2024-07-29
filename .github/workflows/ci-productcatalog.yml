@@ -144,12 +144,12 @@ jobs:
           BRANCH: production/${{ github.sha }}
         run: |
           cd apps/product-catalog/envs/dev/
-          echo "IMAGE_LC=${IMAGE,,}" >>${GITHUB_ENV}
+          IMAGE_LC=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
           TAG=$(echo $TAGS | head -n 1)
           kustomize edit set image "${IMAGE_LC}=${TAG}@${DIGEST}"
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git checkout -b "${BRANCH}}"
+          git checkout -b "${BRANCH}"
           git add .
           git commit -m "ops: set [prod] '${IMAGE_LC}' image tag to '${TAG}@${DIGEST}'"
           git push -u origin "${BRANCH}"
