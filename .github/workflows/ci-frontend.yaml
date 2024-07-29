@@ -92,7 +92,7 @@ jobs:
       image_tags: ${{ steps.meta.outputs.tags }}
       image_digest: ${{ steps.build-and-push.outputs.digest }}
 
-  deploy:
+  deploy-dev:
     runs-on: ubuntu-latest
     needs:
       - build
@@ -113,10 +113,52 @@ jobs:
           DIGEST: ${{ needs.build.outputs.image_digest }}
         run: |
           cd apps/frontend/envs/dev/
+          echo "IMAGE_LC=${IMAGE,,}" >>${GITHUB_ENV}
           TAG=$(echo $TAGS | head -n 1)
-          kustomize edit set image "${IMAGE}=${TAG}@${DIGEST}"
+          kustomize edit set image "${IMAGE_LC}=${TAG}@${DIGEST}"
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "ops: set '${IMAGE}' image tag to '${TAG}@${DIGEST}'"
+          git commit -m "ops: set '${IMAGE_LC}' image tag to '${TAG}@${DIGEST}'"
           git push
+
+  # deploy-prod:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - build
+  #   permissions:
+  #     contents: read
+  #   steps:
+  #     - name: Checkout gitops repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: ${{ env.GITOPS_REPO }}
+  #         token: ${{ secrets.GH_PAT }}
+  #     - name: Setup Kustomize
+  #       uses: imranismail/setup-kustomize@v2
+  #     - name: Update FE image
+  #       env:
+  #         IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+  #         TAGS: ${{ needs.build.outputs.image_tags }}
+  #         DIGEST: ${{ needs.build.outputs.image_digest }}
+  #         BRANCH: production/${{ github.sha }}
+  #       run: |
+  #         cd apps/frontend/envs/dev/
+  #         echo "IMAGE_LC=${IMAGE,,}" >>${GITHUB_ENV}
+  #         TAG=$(echo $TAGS | head -n 1)
+  #         kustomize edit set image "${IMAGE_LC}=${TAG}@${DIGEST}"
+  #         git config user.name 'github-actions[bot]'
+  #         git config user.email 'github-actions[bot]@users.noreply.github.com'
+  #         git checkout -b "${BRANCH}}"
+  #         git add .
+  #         git commit -m "ops: set '${IMAGE_LC}' image tag to '${TAG}@${DIGEST}'"
+  #         git push -u origin "${BRANCH}"
+  #     - name: Create PR
+  #       run: |
+  #         gh pr create \
+  #         -B main \
+  #         -H "${BRANCH}" \
+  #         --title "Promote development to production" \
+  #         --body "Automatically created by GitHub Actions"
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
