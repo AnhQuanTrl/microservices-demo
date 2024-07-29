@@ -16,12 +16,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0.303-noble@sha256:487fcee12549e1f56567d238ed4198f2e9ef7de076d399980eae8dcdf84efe82 as builder
 WORKDIR /app
 COPY cartservice.csproj .
-RUN dotnet restore cartservice.csproj \
-    -r linux-x64
+RUN dotnet restore cartservice.csproj
 COPY . .
 RUN dotnet publish cartservice.csproj \
     -p:PublishSingleFile=true \
-    -r linux-x64 \
     --self-contained true \
     -p:PublishTrimmed=true \
     -p:TrimMode=full \
