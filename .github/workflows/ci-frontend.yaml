@@ -113,7 +113,7 @@ jobs:
           DIGEST: ${{ needs.build.outputs.image_digest }}
         run: |
           cd apps/frontend/envs/dev/
-          echo "IMAGE_LC=${IMAGE,,}" >>${GITHUB_ENV}
+          IMAGE_LC=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
           TAG=$(echo $TAGS | head -n 1)
           kustomize edit set image "${IMAGE_LC}=${TAG}@${DIGEST}"
           git config user.name 'github-actions[bot]'
