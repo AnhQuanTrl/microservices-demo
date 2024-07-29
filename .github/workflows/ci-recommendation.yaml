@@ -1,4 +1,4 @@
-name: Product Catalog CI
+name: Recommendation CI
 
 on:
   push:
