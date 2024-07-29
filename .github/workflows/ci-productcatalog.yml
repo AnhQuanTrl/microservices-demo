@@ -13,7 +13,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository_owner }}/productcatalog
-  # KUBE_INFRA_REPO: ${{ github.repository_owner }}/kube-infra
+  GITOPS_REPO: ${{ github.repository_owner }}/microservice-demo-onlineboutique-apps
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -105,13 +105,13 @@ jobs:
           token: ${{ secrets.GH_PAT }}
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v2
-      - name: Update FE image
+      - name: Update product-catalog image
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           TAGS: ${{ needs.build.outputs.image_tags }}
           DIGEST: ${{ needs.build.outputs.image_digest }}
         run: |
-          cd apps/frontend/envs/dev/
+          cd apps/product-catalog/envs/dev/
           IMAGE_LC=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
           TAG=$(echo $TAGS | head -n 1)
           kustomize edit set image "${IMAGE_LC}=${TAG}@${DIGEST}"
@@ -135,14 +135,14 @@ jobs:
           token: ${{ secrets.GH_PAT }}
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v2
-      - name: Update FE image
+      - name: Update product-catalog image
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           TAGS: ${{ needs.build.outputs.image_tags }}
           DIGEST: ${{ needs.build.outputs.image_digest }}
           BRANCH: production/${{ github.sha }}
         run: |
-          cd apps/frontend/envs/dev/
+          cd apps/product-catalog/envs/dev/
           echo "IMAGE_LC=${IMAGE,,}" >>${GITHUB_ENV}
           TAG=$(echo $TAGS | head -n 1)
           kustomize edit set image "${IMAGE_LC}=${TAG}@${DIGEST}"
